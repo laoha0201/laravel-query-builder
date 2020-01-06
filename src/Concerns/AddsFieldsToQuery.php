@@ -108,4 +108,10 @@ trait AddsFieldsToQuery
 
         return "{$table}.{$field}";
     }
+    
+    public function getRequestedForRelatedTable(string $relation): array
+    {
+		return $this->request->get($relation);
+    }    
+    
 }
