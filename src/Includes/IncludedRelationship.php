@@ -15,6 +15,33 @@ class IncludedRelationship implements IncludeInterface
             ->mapWithKeys(function ($table, $key) use ($query, $relatedTables) {
                 $fullRelationName = $relatedTables->slice(0, $key + 1)->implode('.');
 
+				$tmpname = '_'.str_replace('.','-',$fullRelationName);
+				$param = $query->getRequestedForRelatedTable($tmpname);
+				//dump($param);
+				if(empty($param)){
+					return [$fullRelationName];
+				}else{
+					return [$fullRelationName => function ($query) use ($param) {
+
+						if(!empty($param['fields'])){
+							$query = $query->select(str2arr($param['fields']));
+						}
+
+						if(!empty($param['sort'])){
+							$sort = ltrim($param['sort'], '-');
+							if($sort && strpos($param['sort'],'-')==0){
+								$query = $query->sortBy($sort,'desc');
+							}else{
+								$query = $query->sortBy($sort,'asc');
+							}
+						}
+						if(!empty($param['limit'])){
+							$query = $query->limit($param['limit']);
+						}
+					}];
+				}                
+                
+/*
                 $fields = $query->getRequestedFieldsForRelatedTable($fullRelationName);
 
                 if (empty($fields)) {
@@ -23,7 +50,7 @@ class IncludedRelationship implements IncludeInterface
 
                 return [$fullRelationName => function ($query) use ($fields) {
                     $query->select($fields);
-                }];
+                }];*/
             })
             ->toArray();
 
